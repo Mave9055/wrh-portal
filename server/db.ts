@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, arcs, sessions as sessionsTable, resources, grants } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,55 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getAllArcs() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(arcs).orderBy(arcs.arcNumber);
+}
+
+export async function getArcWithSessions(arcId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const arc = await db.select().from(arcs).where(eq(arcs.id, arcId)).limit(1);
+  if (arc.length === 0) return null;
+  const sessionsList = await db.select().from(sessionsTable).where(eq(sessionsTable.arcId, arcId)).orderBy(sessionsTable.sessionNumber);
+  return { ...arc[0], sessions: sessionsList };
+}
+
+export async function getAllSessions() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(sessionsTable).orderBy(sessionsTable.sessionNumber);
+}
+
+export async function getSessionByNumber(sessionNumber: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(sessionsTable).where(eq(sessionsTable.sessionNumber, sessionNumber)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getSessionsForArc(arcId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(sessionsTable).where(eq(sessionsTable.arcId, arcId)).orderBy(sessionsTable.sessionNumber);
+}
+
+export async function getResourceByType(resourceType: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(resources).where(eq(resources.resourceType, resourceType)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getAllResources() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(resources);
+}
+
+export async function getAllGrants() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(grants);
+}

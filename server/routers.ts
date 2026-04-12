@@ -17,12 +17,64 @@ export const appRouter = router({
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  curriculum: router({
+    arcs: publicProcedure.query(async () => {
+      const { getAllArcs } = await import("./db");
+      return getAllArcs();
+    }),
+    arcWithSessions: publicProcedure.input((val: unknown) => {
+      if (typeof val === 'object' && val !== null && 'arcId' in val && typeof (val as any).arcId === 'number') {
+        return val as { arcId: number };
+      }
+      throw new Error('Invalid input');
+    }).query(async ({ input }) => {
+      const { getArcWithSessions } = await import("./db");
+      return getArcWithSessions(input.arcId);
+    }),
+    allSessions: publicProcedure.query(async () => {
+      const { getAllSessions } = await import("./db");
+      return getAllSessions();
+    }),
+    sessionByNumber: publicProcedure.input((val: unknown) => {
+      if (typeof val === 'object' && val !== null && 'sessionNumber' in val && typeof (val as any).sessionNumber === 'number') {
+        return val as { sessionNumber: number };
+      }
+      throw new Error('Invalid input');
+    }).query(async ({ input }) => {
+      const { getSessionByNumber } = await import("./db");
+      return getSessionByNumber(input.sessionNumber);
+    }),
+    sessionsForArc: publicProcedure.input((val: unknown) => {
+      if (typeof val === 'object' && val !== null && 'arcId' in val && typeof (val as any).arcId === 'number') {
+        return val as { arcId: number };
+      }
+      throw new Error('Invalid input');
+    }).query(async ({ input }) => {
+      const { getSessionsForArc } = await import("./db");
+      return getSessionsForArc(input.arcId);
+    }),
+  }),
+  resources: router({
+    all: publicProcedure.query(async () => {
+      const { getAllResources } = await import("./db");
+      return getAllResources();
+    }),
+    byType: publicProcedure.input((val: unknown) => {
+      if (typeof val === 'object' && val !== null && 'resourceType' in val && typeof (val as any).resourceType === 'string') {
+        return val as { resourceType: string };
+      }
+      throw new Error('Invalid input');
+    }).query(async ({ input }) => {
+      const { getResourceByType } = await import("./db");
+      return getResourceByType(input.resourceType);
+    }),
+  }),
+  grants: router({
+    all: publicProcedure.query(async () => {
+      const { getAllGrants } = await import("./db");
+      return getAllGrants();
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
